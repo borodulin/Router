@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Borodulin\Router\Http\Message;
+namespace Borodulin\Http\Message;
 
 use Borodulin\Router\Http\Factory\UriFactory;
 use Psr\Http\Message\RequestInterface;

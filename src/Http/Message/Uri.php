@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Borodulin\Router\Http\Message;
+namespace Borodulin\Http\Message;
 
 use Psr\Http\Message\UriInterface;
 
@@ -11,27 +11,27 @@ class Uri implements UriInterface
     /**
      * @var string
      */
-    private $scheme = '';
+    private $scheme;
     /**
      * @var string
      */
-    private $host = '';
+    private $host;
     /**
      * @var int|null
      */
     private $port;
     /**
-     * @var string|null
+     * @var string
      */
     private $path;
     /**
      * @var string
      */
-    private $query = '';
+    private $query;
     /**
      * @var string
      */
-    private $fragment = '';
+    private $fragment;
     /**
      * @var string
      */
@@ -43,17 +43,15 @@ class Uri implements UriInterface
 
     public function __construct(string $uri = '')
     {
-        if ($uri) {
-            $parts = parse_url($uri);
-            $this->scheme = $parts[PHP_URL_SCHEME] ?? '';
-            $this->user = $parts[PHP_URL_USER] ?? '';
-            $this->password = $parts[PHP_URL_PASS] ?? null;
-            $this->host = $parts[PHP_URL_HOST] ?? '';
-            $this->port = $parts[PHP_URL_PORT] ?? '';
-            $this->path = $parts[PHP_URL_PATH] ?? '';
-            $this->query = $parts[PHP_URL_QUERY] ?? '';
-            $this->fragment = $parts[PHP_URL_FRAGMENT] ?? '';
-        }
+        $parts = $uri ? parse_url($uri) : [];
+        $this->scheme = $parts['scheme'] ?? '';
+        $this->user = $parts['user'] ?? '';
+        $this->password = $parts['pass'] ?? null;
+        $this->host = $parts['host'] ?? '';
+        $this->port = $parts['port'] ?? null;
+        $this->path = $parts['path'] ?? '';
+        $this->query = $parts['query'] ?? '';
+        $this->fragment = $parts['fragment'] ?? '';
     }
 
     /**
@@ -167,7 +165,7 @@ class Uri implements UriInterface
      *
      * @return int|null the URI port
      */
-    public function getPort()
+    public function getPort(): ?int
     {
         return $this->port;
     }
@@ -224,7 +222,7 @@ class Uri implements UriInterface
      *
      * @return string the URI query string
      */
-    public function getQuery()
+    public function getQuery(): string
     {
         return $this->query;
     }

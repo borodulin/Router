@@ -7,9 +7,10 @@ namespace Borodulin\Router\Loader;
 use Borodulin\Finder\ClassFinder;
 use Borodulin\Finder\FinderInterface;
 use Borodulin\Router\Annotation\Route;
+use Borodulin\Router\Collection\RouteItem;
 use Borodulin\Router\Exception\InvalidConfigurationException;
-use Borodulin\Router\RouteItem;
 use Doctrine\Common\Annotations\SimpleAnnotationReader;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 class AnnotationDirectoryLoader implements LoaderInterface
@@ -45,13 +46,6 @@ class AnnotationDirectoryLoader implements LoaderInterface
             if (null !== $annotation) {
                 yield $this->createClassRouteItem($classReflection, $annotation);
             }
-
-            foreach ($classReflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
-                $annotation = $this->annotationReader->getMethodAnnotation($reflectionMethod, Route::class);
-                if (null !== $annotation) {
-                    yield $this->createMethodRouteItem($reflectionMethod, $annotation);
-                }
-            }
         }
     }
 
@@ -64,29 +58,23 @@ class AnnotationDirectoryLoader implements LoaderInterface
 
     private function createClassRouteItem(\ReflectionClass $classReflection, Route $annotation): RouteItem
     {
-        if (!$classReflection->implementsInterface(RequestHandlerInterface::class)) {
+        if (
+            !$classReflection->implementsInterface(RequestHandlerInterface::class)
+            && !$classReflection->implementsInterface(MiddlewareInterface::class)
+        ) {
             throw new InvalidConfigurationException();
         }
-        return (new RouteItem())
-            ->setName($annotation->getName())
-            ->setPath($annotation->getPath())
-            ->setMethods($annotation->getMethods())
-            ->setMiddlewares($annotation->getMiddlewares())
-            ->setPriority($annotation->getPriority())
-            ->setClass($classReflection->getName())
-        ;
-    }
 
-    private function createMethodRouteItem(\ReflectionMethod $reflectionMethod, Route $annotation): RouteItem
-    {
         return (new RouteItem())
             ->setName($annotation->getName())
             ->setPath($annotation->getPath())
             ->setMethods($annotation->getMethods())
-            ->setMiddlewares($annotation->getMiddlewares())
+            ->setTag($annotation->getTag())
             ->setPriority($annotation->getPriority())
-            ->setClass($reflectionMethod->getDeclaringClass()->getName())
-            ->setClassMethod($reflectionMethod->getName())
+            ->setOptions($annotation->getOptions())
+            ->setTargetClass($classReflection->getName())
+            ->setIsMiddleware($classReflection->implementsInterface(MiddlewareInterface::class))
+            ->setIsRequestHandler($classReflection->implementsInterface(RequestHandlerInterface::class))
         ;
     }
 }

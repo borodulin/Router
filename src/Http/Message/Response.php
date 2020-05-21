@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Borodulin\Router\Http\Message;
+namespace Borodulin\Http\Message;
 
 use Psr\Http\Message\ResponseInterface;
 
