@@ -11,10 +11,6 @@ class RouteItem implements \Serializable
      */
     private $path;
     /**
-     * @var string|null
-     */
-    private $name;
-    /**
      * @var string[]
      */
     private $methods;
@@ -34,14 +30,6 @@ class RouteItem implements \Serializable
      * @var int
      */
     private $priority;
-    /**
-     * @var bool
-     */
-    private $isMiddleware;
-    /**
-     * @var bool
-     */
-    private $isRequestHandler;
 
     public function getPath(): string
     {
@@ -51,18 +39,6 @@ class RouteItem implements \Serializable
     public function setPath(string $path): self
     {
         $this->path = $path;
-
-        return $this;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(?string $name): self
-    {
-        $this->name = $name;
 
         return $this;
     }
@@ -133,57 +109,25 @@ class RouteItem implements \Serializable
         return $this;
     }
 
-    public function isMiddleware(): bool
-    {
-        return $this->isMiddleware;
-    }
-
-    public function setIsMiddleware(bool $isMiddleware): self
-    {
-        $this->isMiddleware = $isMiddleware;
-
-        return $this;
-    }
-
-    public function isRequestHandler(): bool
-    {
-        return $this->isRequestHandler;
-    }
-
-    public function setIsRequestHandler(bool $isRequestHandler): self
-    {
-        $this->isRequestHandler = $isRequestHandler;
-
-        return $this;
-    }
-
     public function serialize(): string
     {
         return serialize([
-            $this->path,
-            $this->name,
             $this->methods,
             $this->tag,
             $this->priority,
             $this->options,
             $this->targetClass,
-            $this->isMiddleware,
-            $this->isRequestHandler,
         ]);
     }
 
     public function unserialize($serialized): void
     {
         [
-            $this->path,
-            $this->name,
             $this->methods,
             $this->tag,
             $this->priority,
             $this->options,
             $this->targetClass,
-            $this->isMiddleware,
-            $this->isRequestHandler,
         ] = unserialize($serialized);
     }
 }

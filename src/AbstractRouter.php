@@ -7,7 +7,7 @@ namespace Borodulin\Router;
 use Borodulin\Router\Collection\RouteItem;
 use Borodulin\Router\Collection\RouteItemFinder;
 use Borodulin\Router\CollisionResolver\CollisionResolverInterface;
-use Borodulin\Router\Exception\RouteNotFoundException;
+use Borodulin\Router\CollisionResolver\ThrowErrorResolver;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -32,28 +32,20 @@ abstract class AbstractRouter
     public function __construct(RouteItemFinder $routeItemFinder)
     {
         $this->routeItemFinder = $routeItemFinder;
+        $this->collisionResolver = new ThrowErrorResolver();
     }
 
     protected function processRequest(
         ServerRequestInterface $request,
         RequestHandlerInterface $defaultHandler = null
     ): MiddlewareInterface {
-        $middlewares = [];
-        $handlers = [];
-        $treeItems = $this->routeItemFinder->findRouteTreeItems($request->getUri()->getPath());
-        if (empty($treeItems)) {
-            throw new RouteNotFoundException();
-        }
-        foreach ($this->routeItemFinder->findRouteItems($treeItems, $request->getMethod()) as $routeItem) {
-            if ($routeItem->isMiddleware()) {
-                $middlewares[] = $routeItem;
-            }
-            if ($routeItem->isRequestHandler()) {
-                $handlers[] = $routeItem;
-            }
-        }
-        if ($handlers) {
-            $handlerItem = $this->collisionResolver->resolve($handlers);
+        $this->routeItemFinder->find($request->getUri()->getPath(), $request->getMethod());
+
+        $middlewares = $this->routeItemFinder->getMiddlewares();
+        $requestHandlers = $this->routeItemFinder->getRequestHandlers();
+        if ($requestHandlers) {
+            $handlerItem = (\count($requestHandlers) > 1)
+                ? $this->collisionResolver->resolve($requestHandlers) : array_shift($requestHandlers);
             $handler = $this->createHandlerFromItem($handlerItem);
         } else {
             $handler = $defaultHandler;
@@ -98,13 +90,14 @@ abstract class AbstractRouter
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
                 $middlewareItem = array_shift($this->middlewares);
+                $handler = $this->handler ?? $handler;
                 if ($middlewareItem) {
                     $middleware = $this->createMiddlewareFromItem($middlewareItem);
 
                     return $middleware->process($request, $handler);
                 }
 
-                return null !== $this->handler ? $this->handler->handle($request) : $handler->handle($request);
+                return $handler->handle($request);
             }
 
             private function createMiddlewareFromItem(RouteItem $routeItem): MiddlewareInterface

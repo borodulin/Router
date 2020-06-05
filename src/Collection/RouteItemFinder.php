@@ -16,6 +16,14 @@ class RouteItemFinder
      * @var PathParser
      */
     private $parser;
+    /**
+     * @var RouteItem[]
+     */
+    private $middlewares = [];
+    /**
+     * @var RouteItem[]
+     */
+    private $requestHandlers = [];
 
     public function __construct(RouteTreeItem $routeTreeItem)
     {
@@ -23,36 +31,21 @@ class RouteItemFinder
         $this->parser = new PathParser();
     }
 
-    /**
-     * @return RouteTreeItem[]
-     */
-    public function findRouteTreeItems(string $path): array
+    public function find(string $path, string $method): bool
     {
+        $this->middlewares = [];
+        $this->requestHandlers = [];
         $routeTreeItems = [$this->routeTreeItem];
         foreach ($this->parser->getPathParts($path) as $part) {
             $routeTreeItems = $this->findChildren($routeTreeItems, $part);
             if (empty($routeTreeItems)) {
-                break;
+                return false;
             }
+            $this->findMiddlewares($routeTreeItems, $method);
         }
+        $this->findHandlers($routeTreeItems, $method);
 
-        return $routeTreeItems;
-    }
-
-    /**
-     * @param RouteTreeItem[] $routeTreeItems
-     *
-     * @return \Traversable|RouteItem[]
-     */
-    public function findRouteItems(array $routeTreeItems, string $method): \Traversable
-    {
-        foreach ($routeTreeItems as $foundItem) {
-            foreach ($foundItem->getRouteItems() as $routeItem) {
-                if (\in_array($method, $routeItem->getMethods())) {
-                    yield $routeItem;
-                }
-            }
-        }
+        return !empty($this->requestHandlers);
     }
 
     /**
@@ -63,19 +56,64 @@ class RouteItemFinder
     private function findChildren(array $routeTreeItems, string $part): array
     {
         $result = [];
-        foreach ($routeTreeItems as $value => $routeTreeItem) {
-            $valuesChild = $routeTreeItem->getValueChild($part);
-            if (null !== $valuesChild) {
-                $result[$value] = $valuesChild;
-            } else {
-                foreach ($routeTreeItem->getExpressionChildren() as $expression => $expressionChild) {
-                    if ($this->parser->match($expression, $part)) {
-                        $result[$expression] = $expressionChild;
-                    }
+        foreach ($routeTreeItems as $routeTreeItem) {
+            $valueChild = $routeTreeItem->getChild($part);
+            if (null !== $valueChild) {
+                $result[] = $valueChild;
+                continue;
+            }
+            foreach ($routeTreeItem->getExpressions() as $expression => $expressionChild) {
+                if ($this->parser->match($expression, $part)) {
+                    $result[] = $expressionChild;
                 }
             }
         }
 
         return $result;
+    }
+
+    /**
+     * @param RouteTreeItem[] $routeTreeItems
+     */
+    private function findMiddlewares(array $routeTreeItems, string $method): void
+    {
+        foreach ($routeTreeItems as $foundItem) {
+            foreach ($foundItem->getMiddlewares() as $routeItem) {
+                if (\in_array($method, $routeItem->getMethods())) {
+                    $this->middlewares[$routeItem->getTargetClass()] = $routeItem;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * @param RouteTreeItem[] $routeTreeItems
+     */
+    private function findHandlers(array $routeTreeItems, string $method): void
+    {
+        foreach ($routeTreeItems as $foundItem) {
+            foreach ($foundItem->getRequestHandlers() as $routeItem) {
+                if (\in_array($method, $routeItem->getMethods())) {
+                    $this->requestHandlers[$routeItem->getTargetClass()] = $routeItem;
+                }
+            }
+        }
+    }
+
+    /**
+     * @return RouteItem[]
+     */
+    public function getMiddlewares(): array
+    {
+        return $this->middlewares;
+    }
+
+    /**
+     * @return RouteItem[]
+     */
+    public function getRequestHandlers(): array
+    {
+        return $this->requestHandlers;
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Borodulin\Router\Collection;
 
 use Borodulin\Router\Parser\PathParser;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 class RouteTreeBuilder
 {
@@ -23,27 +25,22 @@ class RouteTreeBuilder
         $this->pathParser = new PathParser();
     }
 
-    public function addItem(RouteItem $item): void
+    public function addItem(RouteItem $routeItem): void
     {
         $pointer = $this->routeTreeItem;
-        foreach ($this->pathParser->getPathParts($item->getPath()) as $part) {
+        foreach ($this->pathParser->getPathParts($routeItem->getPath()) as $part) {
             $pointer = $this->pathParser->isExpression($part)
-                ? $pointer->addExpressionChild($part) : $pointer->addValueChild($part);
+                ? $pointer->addExpression($part) : $pointer->addChild($part);
         }
-        $pointer->addRouteItem($item);
-    }
 
-    public function normalize(): void
-    {
-        $this->routeTreeItem->normalizeValueChildren([static::class, 'compareItems']);
-        $this->routeTreeItem->normalizeExpressionChildren([static::class, 'compareItems']);
-    }
+        $reflectionClass = new \ReflectionClass($routeItem->getTargetClass());
 
-    public static function compareItems(RouteItem $item1, RouteItem $item2): int
-    {
-        $cmp = (int) $item1->isMiddleware() <=> (int) $item2->isMiddleware();
-
-        return (0 !== $cmp) ? $cmp : $item1->getPriority() <=> $item2->getPriority();
+        if ($reflectionClass->implementsInterface(MiddlewareInterface::class)) {
+            $pointer->addMiddleware($routeItem);
+        }
+        if ($reflectionClass->implementsInterface(RequestHandlerInterface::class)) {
+            $pointer->addRequestHandler($routeItem);
+        }
     }
 
     public function getRouteTree(): RouteTreeItem

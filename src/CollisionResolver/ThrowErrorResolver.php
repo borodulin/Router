@@ -9,7 +9,7 @@ use Borodulin\Router\Exception\RouteNotFoundException;
 
 class ThrowErrorResolver implements CollisionResolverInterface
 {
-    public function resolve(RouteItem ...$routeItems): RouteItem
+    public function resolve(array $routeItems): RouteItem
     {
         throw new RouteNotFoundException();
     }

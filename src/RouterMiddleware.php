@@ -13,7 +13,7 @@ class RouterMiddleware extends AbstractRouter implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $middleware = $this->processRequest($request, $handler);
+        $middleware = $this->processRequest($request);
 
         return $middleware->process($request, $handler);
     }

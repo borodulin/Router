@@ -84,7 +84,7 @@ class RouterBuilder
             }
             $routeTreeBuilder->addItem($item);
         }
-        $routeTreeBuilder->normalize();
+        $routeTreeBuilder->getRouteTree()->normalize();
 
         return $routeTreeBuilder->getRouteTree();
     }

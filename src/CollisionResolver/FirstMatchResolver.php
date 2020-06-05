@@ -8,8 +8,8 @@ use Borodulin\Router\Collection\RouteItem;
 
 class FirstMatchResolver implements CollisionResolverInterface
 {
-    public function resolve(RouteItem ...$routeItems): RouteItem
+    public function resolve(array $routeItems): RouteItem
     {
-        return $routeItems[0];
+        return array_shift($routeItems);
     }
 }

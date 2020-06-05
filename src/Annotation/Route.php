@@ -18,10 +18,6 @@ class Route
      */
     private $path;
     /**
-     * @var string|null
-     */
-    private $name;
-    /**
      * @var array
      * @Enum({"GET","HEAD","POST","PUT","DELETE","CONNECT","OPTIONS","TRACE","PATCH"})
      */
@@ -49,7 +45,6 @@ class Route
             throw new InvalidConfigurationException("Invalid route path: '$this->path'.");
         }
         $this->methods = $params['methods'] ?? ['GET'];
-        $this->name = $params['name'] ?? null;
         $this->tag = $params['tag'] ?? null;
         $this->priority = $params['priority'] ?? 0;
         $this->options = $params['options'] ?? [];
@@ -58,11 +53,6 @@ class Route
     public function getPath(): string
     {
         return $this->path;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
     }
 
     /**

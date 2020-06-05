@@ -8,7 +8,7 @@ use Borodulin\Router\Collection\RouteItem;
 
 class ABTestResolver implements CollisionResolverInterface
 {
-    public function resolve(RouteItem ...$routeItems): RouteItem
+    public function resolve(array $routeItems): RouteItem
     {
         $randomItem = null;
         $prevSigma = 0;

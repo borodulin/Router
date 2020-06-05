@@ -19,8 +19,8 @@ class RouterBuilderTest extends TestCase
         $builder = new RouterBuilder($loader);
         $handler = $builder->buildHandler();
         $request = new ServerRequest();
-        $request->withUri(new Uri('http://localhost/class-route'));
+        $request = $request->withUri(new Uri('http://localhost/route'));
         $response = $handler->handle($request);
-        $this->assertTrue(true);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 }

@@ -66,15 +66,12 @@ class AnnotationDirectoryLoader implements LoaderInterface
         }
 
         return (new RouteItem())
-            ->setName($annotation->getName())
             ->setPath($annotation->getPath())
             ->setMethods($annotation->getMethods())
             ->setTag($annotation->getTag())
             ->setPriority($annotation->getPriority())
             ->setOptions($annotation->getOptions())
             ->setTargetClass($classReflection->getName())
-            ->setIsMiddleware($classReflection->implementsInterface(MiddlewareInterface::class))
-            ->setIsRequestHandler($classReflection->implementsInterface(RequestHandlerInterface::class))
         ;
     }
 }

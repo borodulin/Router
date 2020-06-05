@@ -149,4 +149,9 @@ class Request extends Message implements RequestInterface
 
         return $clone;
     }
+
+    public function __clone()
+    {
+        $this->uri = $this->uri ? clone $this->uri : null;
+    }
 }

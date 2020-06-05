@@ -11,9 +11,9 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * @Route("/class-route", methods={"GET", "POST"}, tag="test1")
+ * @Route("/route", methods={"GET", "POST"}, tag="test1")
  */
-class ClassRouter implements MiddlewareInterface
+class MiddlewareRouter implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

@@ -8,5 +8,8 @@ use Borodulin\Router\Collection\RouteItem;
 
 interface CollisionResolverInterface
 {
-    public function resolve(RouteItem ...$routeItems): RouteItem;
+    /**
+     * @param RouteItem[]
+     */
+    public function resolve(array $routeItems): RouteItem;
 }

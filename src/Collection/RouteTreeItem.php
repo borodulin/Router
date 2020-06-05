@@ -9,93 +9,124 @@ class RouteTreeItem implements \Serializable
     /**
      * @var RouteTreeItem[]
      */
-    private $valueChildren = [];
+    private $children = [];
+
     /**
      * @var RouteTreeItem[]
      */
-    private $expressionChildren = [];
+    private $expressions = [];
+
     /**
      * @var RouteItem[]
      */
-    private $routeItems = [];
+    private $requestHandlers = [];
 
-    public function addValueChild(string $part): self
+    /**
+     * @var RouteItem[]
+     */
+    private $middlewares = [];
+
+    public function addChild(string $part): self
     {
-        if (!isset($this->valueChildren[$part])) {
-            $this->valueChildren[$part] = new static();
+        if (!isset($this->children[$part])) {
+            $this->children[$part] = new static();
         }
 
-        return $this->valueChildren[$part];
+        return $this->children[$part];
     }
 
-    public function addExpressionChild(string $part): self
+    public function addExpression(string $part): self
     {
-        if (!isset($this->expressionChildren[$part])) {
-            $this->expressionChildren[$part] = new static();
+        if (!isset($this->expressions[$part])) {
+            $this->expressions[$part] = new static();
         }
 
-        return $this->expressionChildren[$part];
+        return $this->expressions[$part];
     }
 
-    public function getValueChild(string $part): ?self
+    public function addMiddleware(RouteItem $routeItem): self
     {
-        return $this->valueChildren[$part] ?? null;
+        $this->middlewares[] = $routeItem;
+
+        return $this;
+    }
+
+    public function addRequestHandler(RouteItem $routeItem): self
+    {
+        $this->requestHandlers[] = $routeItem;
+
+        return $this;
+    }
+
+    public function getChild(string $part): ?self
+    {
+        return $this->children[$part] ?? null;
+    }
+
+    /**
+     * @return RouteTreeItem[]
+     */
+    public function getChildren(): array
+    {
+        return $this->children;
+    }
+
+    /**
+     * @return RouteTreeItem[]
+     */
+    public function getExpressions(): array
+    {
+        return $this->expressions;
+    }
+
+    private function normalizeChildren(callable $callable): void
+    {
+        usort($this->middlewares, $callable);
+        usort($this->requestHandlers, $callable);
+
+        foreach ($this->children as $child) {
+            $child->normalizeChildren($callable);
+        }
+        foreach ($this->expressions as $expression) {
+            $expression->normalizeChildren($callable);
+        }
+    }
+
+    public function normalize(): void
+    {
+        $compareFunc = static function (RouteItem $item1, RouteItem $item2) {
+            return $item1->getPriority() <=> $item2->getPriority();
+        };
+        $this->normalizeChildren($compareFunc);
+    }
+
+    public function serialize(): string
+    {
+        return serialize([
+            $this->children, $this->expressions, $this->middlewares, $this->requestHandlers,
+        ]);
+    }
+
+    public function unserialize($serialized): void
+    {
+        [
+            $this->children, $this->expressions, $this->middlewares, $this->requestHandlers,
+        ] = unserialize($serialized);
     }
 
     /**
      * @return RouteItem[]
      */
-    public function getRouteItems(): array
+    public function getRequestHandlers(): array
     {
-        return $this->routeItems;
-    }
-
-    public function addRouteItem(RouteItem $routeItem): self
-    {
-        $this->routeItems[] = $routeItem;
-
-        return $this;
+        return $this->requestHandlers;
     }
 
     /**
-     * @return RouteTreeItem[]
+     * @return RouteItem[]
      */
-    public function getValueChildren(): array
+    public function getMiddlewares(): array
     {
-        return $this->valueChildren;
-    }
-
-    /**
-     * @return RouteTreeItem[]
-     */
-    public function getExpressionChildren(): array
-    {
-        return $this->expressionChildren;
-    }
-
-    public function normalizeValueChildren(callable $callable): void
-    {
-        usort($this->valueChildren, $callable);
-        foreach ($this->valueChildren as $valueChild) {
-            $valueChild->normalizeValueChildren($callable);
-        }
-    }
-
-    public function normalizeExpressionChildren(callable $callable): void
-    {
-        usort($this->expressionChildren, $callable);
-        foreach ($this->expressionChildren as $expressionChild) {
-            $expressionChild->normalizeValueChildren($callable);
-        }
-    }
-
-    public function serialize(): string
-    {
-        return serialize([$this->routeItems, $this->valueChildren]);
-    }
-
-    public function unserialize($serialized): void
-    {
-        [$this->routeItems, $this->valueChildren] = unserialize($serialized);
+        return $this->middlewares;
     }
 }
