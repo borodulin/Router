@@ -9,7 +9,7 @@ use Borodulin\Router\Collection\RouteItem;
 interface CollisionResolverInterface
 {
     /**
-     * @param RouteItem[]
+     * @param RouteItem[] $routeItems
      */
     public function resolve(array $routeItems): RouteItem;
 }

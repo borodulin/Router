@@ -17,7 +17,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 abstract class AbstractRouter
 {
     /**
-     * @var ContainerInterface
+     * @var ContainerInterface|null
      */
     private $container;
     /**
@@ -41,7 +41,7 @@ abstract class AbstractRouter
     ): MiddlewareInterface {
         $this->routeItemFinder->find($request->getUri()->getPath(), $request->getMethod());
 
-        $middlewares = $this->routeItemFinder->getMiddlewares();
+        $middlewareItems = $this->routeItemFinder->getMiddlewares();
         $requestHandlers = $this->routeItemFinder->getRequestHandlers();
         if ($requestHandlers) {
             $handlerItem = (\count($requestHandlers) > 1)
@@ -51,7 +51,7 @@ abstract class AbstractRouter
             $handler = $defaultHandler;
         }
 
-        return $this->createRouteMiddleware($middlewares, $handler);
+        return $this->createRouteMiddleware($middlewareItems, $handler);
     }
 
     private function createHandlerFromItem(RouteItem $routeItem): RequestHandlerInterface
@@ -61,13 +61,16 @@ abstract class AbstractRouter
         return $this->container ? $this->container->get($class) : new $class();
     }
 
-    private function createRouteMiddleware(array $middlewares, ?RequestHandlerInterface $handler): MiddlewareInterface
+    /**
+     * @param RouteItem[] $middlewareItems
+     */
+    private function createRouteMiddleware(array $middlewareItems, ?RequestHandlerInterface $handler): MiddlewareInterface
     {
-        return new class($middlewares, $handler, $this->container) implements MiddlewareInterface {
+        return new class($middlewareItems, $handler, $this->container) implements MiddlewareInterface {
             /**
-             * @var MiddlewareInterface[]
+             * @var RouteItem[]
              */
-            private $middlewares;
+            private $middlewareItems;
             /**
              * @var RequestHandlerInterface|null
              */
@@ -77,19 +80,22 @@ abstract class AbstractRouter
              */
             private $container;
 
-            public function __construct(
-                array $middlewares,
+            /**
+             * @param RouteItem[] $middlewareItems
+             */
+            final public function __construct(
+                array $middlewareItems,
                 RequestHandlerInterface $handler = null,
                 ContainerInterface $container = null
             ) {
-                $this->middlewares = $middlewares;
+                $this->middlewareItems = $middlewareItems;
                 $this->handler = $handler;
                 $this->container = $container;
             }
 
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
-                $middlewareItem = array_shift($this->middlewares);
+                $middlewareItem = array_shift($this->middlewareItems);
                 $handler = $this->handler ?? $handler;
                 if ($middlewareItem) {
                     $middleware = $this->createMiddlewareFromItem($middlewareItem);

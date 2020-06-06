@@ -13,6 +13,6 @@ class AnnotationLoaderTest extends TestCase
     {
         $loader = new AnnotationDirectoryLoader();
         $loader->addPath(__DIR__.'/../Samples');
-        $this->assertEquals(1, iterator_count($loader));
+        $this->assertEquals(3, iterator_count($loader));
     }
 }

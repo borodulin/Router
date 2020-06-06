@@ -14,7 +14,7 @@ class ABTestResolver implements CollisionResolverInterface
         $prevSigma = 0;
         foreach ($routeItems as $routeItem) {
             $weight = ($routeItem->getOptions()['weight'] ?? null) ?: 1;
-            $sigma = (mt_rand() / mt_getrandmax()) ** (1 / $weight);
+            $sigma = (random_int(1, PHP_INT_MAX) / PHP_INT_MAX) ** (1 / $weight);
             if ($sigma > $prevSigma) {
                 $prevSigma = $sigma;
                 $randomItem = $routeItem;

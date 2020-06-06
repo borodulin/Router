@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Borodulin\Router\Collection;
 
-class RouteTreeItem implements \Serializable
+final class RouteTreeItem implements \Serializable
 {
     /**
      * @var RouteTreeItem[]

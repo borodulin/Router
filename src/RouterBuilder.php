@@ -11,12 +11,11 @@ use Borodulin\Router\Collection\RouteTreeItem;
 use Borodulin\Router\Exception\InvalidConfigurationException;
 use Borodulin\Router\Loader\LoaderInterface;
 use Psr\SimpleCache\CacheInterface;
-use Psr\SimpleCache\InvalidArgumentException;
 
 class RouterBuilder
 {
     /**
-     * @var CacheInterface
+     * @var CacheInterface|null
      */
     private $cache;
     /**
@@ -33,17 +32,11 @@ class RouterBuilder
         $this->loader = $loader;
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function buildMiddleware(): RouterMiddleware
     {
         return new RouterMiddleware(new RouteItemFinder($this->loadItems()));
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function buildHandler(): RouterHandler
     {
         return new RouterHandler(new RouteItemFinder($this->loadItems()));
@@ -56,9 +49,6 @@ class RouterBuilder
         return $this;
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     private function loadItems(): RouteTreeItem
     {
         $cacheKey = self::class.++self::$versionId;
