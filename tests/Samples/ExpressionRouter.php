@@ -25,6 +25,7 @@ class ExpressionRouter implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $request = $request->withAttribute('expressionPassed', true);
+
         return $handler->handle($request);
     }
 }

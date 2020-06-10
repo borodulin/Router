@@ -56,6 +56,7 @@ abstract class AbstractRouter
 
     private function createHandlerFromItem(RouteItem $routeItem): RequestHandlerInterface
     {
+        /** @var RequestHandlerInterface $class */
         $class = $routeItem->getTargetClass();
 
         return $this->container ? $this->container->get($class) : new $class();
@@ -108,6 +109,7 @@ abstract class AbstractRouter
 
             private function createMiddlewareFromItem(RouteItem $routeItem): MiddlewareInterface
             {
+                /** @var MiddlewareInterface $class */
                 $class = $routeItem->getTargetClass();
 
                 return $this->container ? $this->container->get($class) : new $class();

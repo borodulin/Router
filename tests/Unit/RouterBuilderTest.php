@@ -27,7 +27,6 @@ class RouterBuilderTest extends TestCase
     private function createRequest(string $path, string $method): ServerRequestInterface
     {
         return new class($path, $method) implements ServerRequestInterface {
-
             /**
              * @var string
              */
@@ -189,7 +188,6 @@ class RouterBuilderTest extends TestCase
             public function getUri()
             {
                 return new class($this->path) implements UriInterface {
-
                     /**
                      * @var string
                      */

@@ -86,7 +86,6 @@ class RouteItemFinder
         }
     }
 
-
     /**
      * @param RouteTreeItem[] $routeTreeItems
      */
